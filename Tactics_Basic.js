@@ -510,7 +510,7 @@ Bitmap.prototype.drawLine = function(x1, y1, x2, y2) {
     context.lineTo(x2, y2);
     context.stroke();
     context.restore();
-    this._setDirty();
+    this._baseTexture.update();
 };
 
 //-----------------------------------------------------------------------------
@@ -541,13 +541,9 @@ SceneManager.isCurrentScene = function(sceneClass) {
 //
 // The scene class of the tactics screen.
 
-function Scene_Battle() {
-    this.initialize.apply(this, arguments);
-}
 
-Scene_Battle.prototype = Object.create(Scene_Base.prototype);
-Scene_Battle.prototype.constructor = Scene_Battle;
-
+//MOD jmoresca
+/*
 Scene_Battle.prototype.initialize = function() {
     Scene_Base.prototype.initialize.call(this);
 };
@@ -556,18 +552,17 @@ Scene_Battle.prototype.create = function() {
     Scene_Base.prototype.create.call(this);
     this.createDisplayObjects();
 };
+*/
 
 Scene_Battle.prototype.createDisplayObjects = function() {
     this.createSpriteset();
     this.createWindowLayer();
     this.createAllWindows();
-    BattleManager.setLogWindow(this._logWindow);
-    BattleManager.setCommandWindow(this._tacticsCommandWindow);
-    BattleManager.setActorWindow(this._actorWindow);
-    BattleManager.setEnemyWindow(this._enemyWindow);
-    BattleManager.setInfoWindow(this._infoWindow);
-    BattleManager.setSpriteset(this._spriteset);
-    this._logWindow.setSpriteset(this._spriteset);
+    this.createButtons();
+
+   BattleManager.setLogWindow(this._logWindow);
+   BattleManager.setSpriteset(this._spriteset);
+   this._logWindow.setSpriteset(this._spriteset);
 };
 
 Scene_Battle.prototype.createSpriteset = function() {
@@ -575,21 +570,24 @@ Scene_Battle.prototype.createSpriteset = function() {
     this.addChild(this._spriteset);
 };
 
+
+const _Scene_Battle_createAllWindows = Scene_Battle.prototype.createAllWindows;
 Scene_Battle.prototype.createAllWindows = function() {
-    this.createLogWindow();
-    this.createUnitWindow();
-    this.createActorCommandWindow();
-    this.createHelpWindow();
-    this.createSkillWindow();
-    this.createItemWindow();
-    this.createMessageWindow();
-    this.createInfoWindow();
+
+    //MOD jmoresca
+    _Scene_Battle_createAllWindows.call(this);
     this.createMapWindow();
-    this.createStatusWindow();
 };
 
 Scene_Battle.prototype.createLogWindow = function() {
-    this._logWindow = new Window_BattleLog();
+    //MOD jmoresca
+    const ww = this.mainCommandWidth();
+    const wh = 400
+    const wx = 0;
+    const wy = 0;
+    const rect = new Rectangle(wx, wy, ww, wh);
+
+    this._logWindow = new Window_BattleLog(rect);
     this.addWindow(this._logWindow);
 };
 
@@ -613,7 +611,9 @@ Scene_Battle.prototype.createEnemyWindow = function() {
 };
 
 Scene_Battle.prototype.createActorCommandWindow = function() {
-    this._tacticsCommandWindow = new Window_TacticsCommand();
+    const tacticsCommandWindowRect = this.tacticsCommandWindowRect();
+    this._tacticsCommandWindow = new Window_TacticsCommand(tacticsCommandWindowRect);
+
     this._tacticsCommandWindow.setHandler('attack', this.commandAttack.bind(this));
     this._tacticsCommandWindow.setHandler('skill',  this.commandSkill.bind(this));
     this._tacticsCommandWindow.setHandler('guard',  this.commandGuard.bind(this));
@@ -624,17 +624,22 @@ Scene_Battle.prototype.createActorCommandWindow = function() {
     this.addWindow(this._tacticsCommandWindow);
 };
 
-Scene_Battle.prototype.createHelpWindow = function() {
-    this._helpWindow = new Window_Help();
-    this._helpWindow.visible = false;
-    this.addWindow(this._helpWindow);
-};
+Scene_Battle.prototype.tacticsCommandWindowRect = function() {
+    const ww = 192;
+    const wh = this.windowAreaHeight();
+    const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+    const wy = Graphics.boxHeight - wh;
+    return new Rectangle(wx, wy, ww, wh);
+}
 
 Scene_Battle.prototype.createSkillWindow = function() {
     var wx = this._tacticsCommandWindow.x + this._tacticsCommandWindow.width;
     var ww = Graphics.boxWidth - this._tacticsCommandWindow.width;
     var wh = this._tacticsCommandWindow.fittingHeight(4);
-    this._skillWindow = new Window_TacticsSkill(wx, this._tacticsCommandWindow.y, ww, wh);
+
+    const rect = new Rectangle(wx, this._tacticsCommandWindow.y, ww, wh);
+
+    this._skillWindow = new Window_TacticsSkill(rect);
     this._skillWindow.setHelpWindow(this._helpWindow);
     this._skillWindow.setHandler('ok',     this.onSkillOk.bind(this));
     this._skillWindow.setHandler('cancel', this.onSkillCancel.bind(this));
@@ -645,19 +650,14 @@ Scene_Battle.prototype.createItemWindow = function() {
     var wx = this._tacticsCommandWindow.x + this._tacticsCommandWindow.width;
     var ww = Graphics.boxWidth - this._tacticsCommandWindow.width;
     var wh = this._tacticsCommandWindow.fittingHeight(4);
-    this._itemWindow = new Window_TacticsItem(wx, this._tacticsCommandWindow.y, ww, wh);
+
+    const rect = new Rectangle(wx, this._tacticsCommandWindow.y, ww, wh);
+
+    this._itemWindow = new Window_TacticsItem(rect);
     this._itemWindow.setHelpWindow(this._helpWindow);
     this._itemWindow.setHandler('ok',     this.onItemOk.bind(this));
     this._itemWindow.setHandler('cancel', this.onItemCancel.bind(this));
     this.addWindow(this._itemWindow);
-};
-
-Scene_Battle.prototype.createMessageWindow = function() {
-    this._messageWindow = new Window_Message();
-    this.addWindow(this._messageWindow);
-    this._messageWindow.subWindows().forEach(function(window) {
-        this.addWindow(window);
-    }, this);
 };
 
 Scene_Battle.prototype.createInfoWindow = function() {
@@ -676,14 +676,6 @@ Scene_Battle.prototype.createMapWindow = function() {
     this._mapWindow.setHandler('gameEnd', this.commandGameEnd.bind(this));
     this._mapWindow.setHandler('cancel',  this.commandCancelMapWindow.bind(this));
     this.addWindow(this._mapWindow);
-};
-
-Scene_Battle.prototype.createStatusWindow = function() {
-    var wx = this._mapWindow.x + this._mapWindow.width;
-    this._statusWindow = new Window_MenuStatus(wx, 0);
-    this._statusWindow.reserveFaceImages();
-    this._statusWindow.hide();
-    this.addWindow(this._statusWindow);
 };
 
 Scene_Battle.prototype.commandPersonal = function() {
@@ -721,7 +713,9 @@ Scene_Battle.prototype.commandCancelMapWindow = function() {
 Scene_Battle.prototype.start = function() {
     $gameSwitches.setValue(TacticsSystem.battleStartId, true);
     $gamePlayer.setThrough(true);
-    Scene_Base.prototype.start.call(this);
+
+    Scene_Message.prototype.start.call(this);
+
     BattleManager.startBattle();
     this.startFadeIn(this.slowFadeSpeed(), false);
     this.menuCalling = false;
@@ -751,12 +745,14 @@ Scene_Battle.prototype.update = function() {
     var active = this.isActive();
     $gameMap.update(active);
     $gameTimer.update(active);
+
     if (active && !this.isBusy()) {
         this.updateBattleProcess();
     }
     $gameSelector.update();
     $gameScreen.update();
-    Scene_Base.prototype.update.call(this);
+
+    Scene_Message.prototype.update.call(this);
 };
 
 Scene_Battle.prototype.isMenuEnabled = function() {
@@ -830,7 +826,7 @@ Scene_Battle.prototype.updateBattleProcess = function() {
 
 Scene_Battle.prototype.isBusy = function() {
     return ((this._messageWindow && this._messageWindow.isClosing()) ||
-             Scene_Base.prototype.isBusy.call(this) || $gameSelector.isBusy());
+        Scene_Message.prototype.isBusy.call(this) || $gameSelector.isBusy());
 };
 
 Scene_Battle.prototype.isAnyInputWindowActive = function() {
@@ -967,7 +963,7 @@ Scene_Battle.prototype.endCommandSelection = function() {
 };
 
 Scene_Battle.prototype.stop = function() {
-    Scene_Base.prototype.stop.call(this);
+    Scene_Message.prototype.stop.call(this);
     if (this.needsSlowFadeOut()) {
         this.startFadeOut(this.slowFadeSpeed(), false);
     } else {
@@ -984,7 +980,7 @@ Scene_Battle.prototype.needsSlowFadeOut = function() {
 };
 
 Scene_Battle.prototype.terminate = function() {
-    Scene_Base.prototype.terminate.call(this);
+    Scene_Message.prototype.terminate.call(this);
 };
 
 
@@ -3679,9 +3675,9 @@ Game_Interpreter.prototype.iterateEnemyIndex = function(param, callback) {
 
 // Battle Processing
 TacticsSystem.Game_Interpreter_command301 = Game_Interpreter.prototype.command301;
-Game_Interpreter.prototype.command301 = function() {
+Game_Interpreter.prototype.command301 = function(params) {
     this.setWaitMode('TacticsSystem.battle');
-    return TacticsSystem.Game_Interpreter_command301.call(this);
+    return TacticsSystem.Game_Interpreter_command301.call(this, params);
 };
 
 //-----------------------------------------------------------------------------
@@ -3933,11 +3929,11 @@ function Sprite_Selector() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Selector.prototype = Object.create(Sprite_Base.prototype);
+Sprite_Selector.prototype = Object.create(Sprite.prototype);
 Sprite_Selector.prototype.constructor = Sprite_Selector;
 
 Sprite_Selector.prototype.initialize = function() {
-    Sprite_Base.prototype.initialize.call(this);
+    Sprite.prototype.initialize.call(this);
     this.loadBitmap();
 };
 
@@ -3946,14 +3942,14 @@ Sprite_Selector.prototype.loadBitmap = function() {
 };
 
 Sprite_Selector.prototype.update = function() {
-    Sprite_Base.prototype.update.call(this);
+    Sprite.prototype.update.call(this);
     this.updateVisibility();
     this.x = $gameSelector.screenX();
     this.y = $gameSelector.screenY();
 };
 
 Sprite_Selector.prototype.updateVisibility = function() {
-    Sprite_Base.prototype.updateVisibility.call(this);
+    Sprite.prototype.updateVisibility.call(this);
     this.visible = !$gameSelector.isTransparent();
 };
 
@@ -3966,11 +3962,11 @@ function Sprite_Grid() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Grid.prototype = Object.create(Sprite_Base.prototype);
+Sprite_Grid.prototype = Object.create(Sprite.prototype);
 Sprite_Grid.prototype.constructor = Sprite_Grid;
 
 Sprite_Grid.prototype.initialize = function() {
-    Sprite_Base.prototype.initialize.call(this);
+    Sprite.prototype.initialize.call(this);
     this.setFrame(0, 0, Graphics.width, Graphics.height);
     this.createBitmap();
     this.z = 1;
@@ -3990,7 +3986,7 @@ Sprite_Grid.prototype.createBitmap = function() {
 };
 
 Sprite_Grid.prototype.update = function() {
-    Sprite_Base.prototype.update.call(this);
+    Sprite.prototype.update.call(this);
     var screen = $gameScreen;
     var scale = screen.zoomScale();
     this.scale.x = scale;
@@ -4026,7 +4022,7 @@ Spriteset_Tactics.prototype.createLowerLayer = function() {
 };
 
 Spriteset_Tactics.prototype.createBaseTiles = function() {
-    this._tilesSprite = new Sprite_Base();
+    this._tilesSprite = new Sprite();
     this._tilesSprite.z = 1;
     this._rangeTilesSprite = this.createTiles(TacticsSystem.moveScopeColor);
     this._tilemap.addChild(this._tilesSprite);
@@ -4039,7 +4035,7 @@ Spriteset_Tactics.prototype.createSelector = function() {
 };
 
 Spriteset_Tactics.prototype.createTiles = function(color) {
-    var tilesSprite = new Sprite_Base();
+    var tilesSprite = new Sprite();
     var width = $gameMap.width();
     var height = $gameMap.height();
     tilesSprite.bitmap = new Bitmap(width * 48, height * 48);
@@ -4135,7 +4131,7 @@ Spriteset_Tactics.prototype.isBusy = function() {
 
 Spriteset_Tactics.prototype.isAnimationPlaying = function() {
     for (var i = 0; i < this._characterSprites.length; i++) {
-        if (this._characterSprites[i].isAnimationPlaying()) {
+        if(this._characterSprites[i]._character.isAnimationPlaying()) {
             return true;
         }
     }
@@ -4457,11 +4453,11 @@ function Sprite_HpGauge() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_HpGauge.prototype = Object.create(Sprite_Base.prototype);
+Sprite_HpGauge.prototype = Object.create(Sprite.prototype);
 Sprite_HpGauge.prototype.constructor = Sprite_HpGauge;
 
 Sprite_HpGauge.prototype.initialize = function(battler) {
-    Sprite_Base.prototype.initialize.call(this);
+    Sprite.prototype.initialize.call(this);
     this.bitmap = new Bitmap(40, 4);
     this.windowskin = ImageManager.loadSystem('Window');
     this.anchor.x = 0.5;
@@ -4488,7 +4484,7 @@ Sprite_HpGauge.prototype.textColor = function(n) {
 };
 
 Sprite_HpGauge.prototype.update = function(battler) {
-    Sprite_Base.prototype.update.call(this);
+    Sprite.prototype.update.call(this);
     this.bitmap.clear();
     if (this._battler.isAlive()) {
         this.drawBattlerHP();
@@ -4517,11 +4513,11 @@ function Sprite_Start() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Start.prototype = Object.create(Sprite_Base.prototype);
+Sprite_Start.prototype = Object.create(Sprite.prototype);
 Sprite_Start.prototype.constructor = Sprite_Start;
 
 Sprite_Start.prototype.initialize = function() {
-    Sprite_Base.prototype.initialize.call(this);
+    Sprite.prototype.initialize.call(this);
     this.bitmap = new Bitmap(Graphics.width, Graphics.height);
     this._delay = 0;
     this._maxDuration = TacticsSystem.durationStartSprite;
@@ -4530,7 +4526,7 @@ Sprite_Start.prototype.initialize = function() {
 };
 
 Sprite_Start.prototype.update = function(battler) {
-    Sprite_Base.prototype.update.call(this);
+    Sprite.prototype.update.call(this);
     this.updateMain();
     this.updatePosition();
     this.updateOpacity();
@@ -4586,18 +4582,14 @@ Sprite_Start.prototype.updateOpacity = function() {
 // The window for selecting an actor's action on the tactics screen.
 
 function Window_TacticsCommand() {
-    this.initialize.apply(this, arguments);
+    this.initialize(...arguments);
 }
 
 Window_TacticsCommand.prototype = Object.create(Window_ActorCommand.prototype);
 Window_TacticsCommand.prototype.constructor = Window_TacticsCommand;
 
-Window_TacticsCommand.prototype.initialize = function() {
-    var y = Graphics.boxHeight - this.windowHeight();
-    Window_Command.prototype.initialize.call(this, 0, y);
-    this.openness = 0;
-    this.deactivate();
-    this._actor = null;
+Window_TacticsCommand.prototype.initialize = function(rect) {
+    Window_ActorCommand.prototype.initialize.call(this, rect);
 };
 
 Window_TacticsCommand.prototype.setup = function(actor) {
@@ -4654,7 +4646,10 @@ Window_TacticsStatus.prototype.initialize = function() {
     var y = Graphics.boxHeight - (this.windowHeight());
     var width = this.windowWidth();
     var height = this.windowHeight();
-    Window_Base.prototype.initialize.call(this, 0, y, width, height);
+
+    const rect = new Rectangle(0, y, width, height);
+    Window_Base.prototype.initialize.call(this, rect);
+
     this.openness = 0;
     this._battler = null;
 };
@@ -4729,12 +4724,14 @@ Window_TacticsStatus.prototype.drawEnemySimpleStatus = function(enemy, x, y, wid
 // The window for selecting a skill to use on the tactics screen.
 
 function Window_TacticsSkill() {
-    this.initialize.apply(this, arguments);
+    this.initialize(...arguments);
 }
 
 Window_TacticsSkill.prototype = Object.create(Window_BattleSkill.prototype);
 Window_TacticsSkill.prototype.constructor = Window_TacticsSkill;
 
+//MOD jmoresca
+/*
 Window_TacticsSkill.prototype.processCursorMove = function() {
     var lastIndex = this.index();
     Window_BattleSkill.prototype.processCursorMove.call(this);
@@ -4763,6 +4760,7 @@ Window_TacticsSkill.prototype.refreshRedCells = function() {
     action.setSkill(this.item().id);
     BattleManager.refreshRedCells(action);
 };
+*/
 
 //-----------------------------------------------------------------------------
 // Window_TacticsItem
@@ -4770,7 +4768,7 @@ Window_TacticsSkill.prototype.refreshRedCells = function() {
 // The window for selecting a item to use on the tactics screen.
 
 function Window_TacticsItem() {
-    this.initialize.apply(this, arguments);
+    this.initialize(...arguments);
 }
 
 Window_TacticsItem.prototype = Object.create(Window_BattleItem.prototype);
@@ -4801,17 +4799,18 @@ Window_TacticsItem.prototype.show = function() {
 // The window for displaying the combat information on the battle screen.
 
 function Window_TacticsInfo() {
-    this.initialize.apply(this, arguments);
+    this.initialize(...arguments);
 }
 
 Window_TacticsInfo.prototype = Object.create(Window_Status.prototype);
 Window_TacticsInfo.prototype.constructor = Window_TacticsInfo;
 
-Window_TacticsInfo.prototype.initialize = function() {
-    Window_Status.prototype.initialize.call(this, 0, 0);
+Window_TacticsInfo.prototype.initialize = function(_rect) {
+    const rect = new Rectangle(0, 0, this.windowWidth(), this.windowHeight());    
+
+    Window_Status.prototype.initialize.call(this, rect);
+
     this.openness = 0;
-    this.width = this.windowWidth();
-    this.height = this.windowHeight();
 };
 
 Window_TacticsInfo.prototype.windowWidth = function() {
@@ -4894,14 +4893,16 @@ Window_TacticsInfo.prototype.drawCri = function(actor, x, y) {
 // The window for displaying essential commands for progressing in tactics screen.
 
 function Window_TacticsMap() {
-    this.initialize.apply(this, arguments);
+    this.initialize(...arguments);
 }
 
 Window_TacticsMap.prototype = Object.create(Window_MenuCommand.prototype);
 Window_TacticsMap.prototype.constructor = Window_TacticsMap;
 
 Window_TacticsMap.prototype.initialize = function(x, y) {
-    Window_MenuCommand.prototype.initialize.call(this, x, y);
+    const rect = new Rectangle(0, 0, 240, 400);
+    Window_MenuCommand.prototype.initialize.call(this, rect);
+
     this.selectLast();
     this.hide();
     this.deactivate();
