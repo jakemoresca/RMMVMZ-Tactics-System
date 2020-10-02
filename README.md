@@ -1,5 +1,5 @@
-# [Tactics System](https://forums.rpgmakerweb.com/index.php?threads/tactics-system-1-1.117600/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]
-The Tactics System is a tactical battle system plugin for RPG Maker MV.
+# [Tactics System][![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]
+The Tactics System is a tactical battle system plugin for RPG Maker MZ. It's based on the original tactical battle system plugin for RPG Maker MV (https://github.com/belmoussaoui/Tactics-System)
 
 * **Easy to use:** Tactics System has been designed to be easy to use. Just create a map with events defining the position of actors and enemies and use default battle processing event command to launch a battle!
 * **Expandable by add-on:** The plugin has been developed based on what already existed in RPG Maker MZ by following the predefined rules. Thus it is easy to extend the Tactics System with add-ons. A list of add-ons bringing features to the system is already available.
