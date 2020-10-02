@@ -1,10 +1,11 @@
 //=============================================================================
-// Tactics_Basic.js v1.2
+// MZ Tactics Basic
+// Based on Tactics_Basic.js v1.2 by Bilal El Moussaoui (https://twitter.com/arleq1n)
 //=============================================================================
 
 /*:
- * @plugindesc A Tactical Battle System designed for RPG Maker.
- * @author Bilal El Moussaoui (https://twitter.com/arleq1n)
+ * @plugindesc A Tactical Battle System designed for RPG Maker MZ.
+ * @author jmoresca
  *
  * @param Basic Parameters
  *
@@ -301,8 +302,6 @@
  *
  *
  * Help
- * If you encounter a error, please report it in the following thread :
- *     https://forums.rpgmakerweb.com/index.php?threads/tactics-system-1-0.117600/
  */
 
 var TacticsSystem = TacticsSystem || {};
@@ -595,10 +594,11 @@ Scene_Battle.prototype.createAllWindows = function () {
 };
 
 Scene_Battle.prototype.createLogWindow = function () {
-    const ww = this.mainCommandWidth();
-    const wh = 400
+    const ww = Graphics.boxWidth;
+    const wh = this.calcWindowHeight(10, false);
     const wx = 0;
     const wy = 0;
+
     const rect = new Rectangle(wx, wy, ww, wh);
 
     this._logWindow = new Window_BattleLog(rect);
@@ -611,16 +611,12 @@ Scene_Battle.prototype.createUnitWindow = function () {
 };
 
 Scene_Battle.prototype.createActorWindow = function () {
-    var sx = 32;
     this._actorWindow = new Window_TacticsStatus();
-    this._actorWindow.x = Graphics.boxWidth / 2 + sx;
     this.addWindow(this._actorWindow);
 };
 
 Scene_Battle.prototype.createEnemyWindow = function () {
-    var sx = 32;
     this._enemyWindow = new Window_TacticsStatus();
-    this._enemyWindow.x = Graphics.boxWidth / 2 - this._enemyWindow.width - sx;
     this.addWindow(this._enemyWindow);
 };
 
@@ -4633,8 +4629,6 @@ Window_TacticsCommand.prototype = Object.create(Window_ActorCommand.prototype);
 Window_TacticsCommand.prototype.constructor = Window_TacticsCommand;
 
 Window_TacticsCommand.prototype.initialize = function (rect) {
-    //Window_ActorCommand.prototype.initialize.call(this, rect);
-
     Window_ActorCommand.prototype.initialize.call(this, rect);
 };
 
@@ -4737,37 +4731,28 @@ Window_TacticsStatus.prototype.drawBattlerStatus = function () {
     }
 };
 
-Window_TacticsStatus.prototype.drawActorSimpleStatus = function (actor, x, y, width) {
+Window_TacticsStatus.prototype.drawActorSimpleStatus = function (actor, x, y) {
     var lineHeight = this.lineHeight();
     var x2 = x + 150;
-    //var width2 = Math.min(200, width - 180 - this.textPadding());
+
     this.drawActorName(actor, x, y);
     this.drawActorLevel(actor, x, y + lineHeight * 1);
     this.drawActorIcons(actor, x, y + lineHeight * 2);
     this.drawActorClass(actor, x2, y);
 
-    this.placeBasicGauges(actor, x2, y);
-
-    /*MOD jmoresca
-    if ($dataSystem.optDisplayTp) {
-        this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
-        this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
-        this.drawActorTp(actor, x2, y + lineHeight * 3, width2);
-    } else {
-        this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
-        this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
-    }*/
+    this.placeBasicGauges(actor, x2, y + lineHeight);
 };
 
-Window_TacticsStatus.prototype.drawEnemySimpleStatus = function (enemy, x, y, width) {
+Window_TacticsStatus.prototype.drawEnemySimpleStatus = function (enemy, x, y) {
     var x2 = x + 150;
+    var lineHeight = this.lineHeight();
 
     this.drawActorName(enemy, x2, y);
-    this.placeBasicGauges(enemy, x2, y);
+    this.placeBasicGauges(enemy, x2, y + lineHeight);
 };
 
 Window_TacticsStatus.prototype.placeGauge = function(actor, type, x, y) {
-    const key = actor.isActor() ? "actor%1-gauge-%2".format(actor.actorId(), type) : "";
+    const key = actor.isActor() ? "actor%1-gauge-%2".format(actor.actorId(), type) : "actor1-gauge-%1".format(type);
     const sprite = this.createInnerSprite(key, Sprite_Gauge);
     sprite.setup(actor, type);
     sprite.move(x, y);
@@ -5005,8 +4990,8 @@ Window_TacticsMap.prototype.selectLast = function () {
 // The superclass of all windows within the game.
 
 Window_Base.prototype.drawEnemyImage = function (battler, x, y) {
-    width = Window_Base._faceWidth;
-    height = Window_Base._faceHeight;
+    width = ImageManager.faceWidth;
+    height = ImageManager.faceHeight;
     var bitmap = ImageManager.loadEnemy(battler.battlerName());
     var pw = bitmap.width;
     var ph = bitmap.height;
