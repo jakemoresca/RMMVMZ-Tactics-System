@@ -587,21 +587,14 @@ Scene_Battle.prototype.createAllWindows = function () {
     this.createHelpWindow();
     this.createSkillWindow();
     this.createItemWindow();
-    //this.createMessageWindow();
 
     _Scene_Message_createAllWindows.call(this);
 
     this.createMapWindow();
     this.createInfoWindow();
-
-    //MOD jmoresca
-    //_Scene_Battle_createAllWindows.call(this);
-    //this.createMapWindow();
-    //this.createInfoWindow();
 };
 
 Scene_Battle.prototype.createLogWindow = function () {
-    //MOD jmoresca
     const ww = this.mainCommandWidth();
     const wh = 400
     const wx = 0;
@@ -687,6 +680,15 @@ Scene_Battle.prototype.createInfoWindow = function () {
     this._infoWindow.x = Graphics.boxWidth / 2 - this._infoWindow.width / 2;
     this._infoWindow.y = 0;
     this.addWindow(this._infoWindow);
+};
+
+Scene_Battle.prototype.createStatusWindow = function() {
+    const rect = this.statusWindowRect();
+    const statusWindow = new Window_BattleStatus(rect);
+    this.addWindow(statusWindow);
+    this._statusWindow = statusWindow;
+
+    this._statusWindow.hide();
 };
 
 Scene_Battle.prototype.createMapWindow = function () {
