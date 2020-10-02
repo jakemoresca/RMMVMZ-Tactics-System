@@ -13,14 +13,7 @@ Download TacticsSystem.js and put it in the plugin folder of your project. Activ
 You must also add a Selector.png image to your project's img/system folder.
 
 ## Documentation
-You can find the plugin's forum [on the website](https://forums.rpgmakerweb.com/index.php?threads/tactics-system-1-1.117600/).
-Check out the [Getting Started](https://belmoussaoui.github.io/Tactics-System/) page for a quick overview of features.
-The following video explains how to create a battle from an empty project. It also introduces some advanced features for managing a battle.
 
-
-[![Alt text](https://img.youtube.com/vi/Uf3b-STrGRU/0.jpg)](https://www.youtube.com/watch?v=Uf3b-STrGRU)
-
-You will find the demo built in the video and an indie game under development on this [itch.io page](https://arleq1.itch.io/the-unloved-game).
 
 ## License
 Tactics System is [MIT licensed](./LICENSE).
