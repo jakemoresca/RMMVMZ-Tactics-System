@@ -1,16 +1,13 @@
 //=============================================================================
-// Tactics_Mouse.js
+//  MZ Tactics Mouse
+//  Based on Tactics_Mouse.js by Bilal El Moussaoui (https://twitter.com/arleq1n)
 //=============================================================================
 
 /*:
  * @plugindesc Add features for control with the mouse.
  * Requires: TacticsSystem.js.
- * @author Bilal El Moussaoui (https://twitter.com/arleq1n)
+ * @author jmoresca
  *
- * @help
- *
- * For more information, please consult :
- *   - https://forums.rpgmakerweb.com/index.php?threads/tactics-system.97023/
  */
 
 var MouseSystem = MouseSystem || {};
@@ -253,20 +250,15 @@ Game_Map.prototype.roundYWithDirection8 = function(y, d) {
 
 Window_Selectable.prototype.processTouch = function() {
     if (this.isOpenAndActive()) {
-        if (TouchInput.isTriggered() && this.isTouchedInsideFrame()) {
-            this._touching = true;
-            this.onTouch(true);
+        if (this.isHoverEnabled() && TouchInput.isHovered()) {
+            this.onTouchSelect(false);
+        } else if (TouchInput.isTriggered() && this.isTouchedInsideFrame()) {
+            this.onTouchSelect(true);
+        }
+        if (TouchInput.isClicked()) {
+            this.onTouchOk();
         } else if (TouchInput.isCancelled()) {
-            if (this.isCancelEnabled()) {
-                this.processCancel();
-            }
+            this.onTouchCancel();
         }
-        if (this.isTouchedInsideFrame()) {
-            if (TouchInput.isActive()) {
-                this.onTouch(false);
-            }
-        }
-    } else {
-        this._touching = false;
     }
 };
