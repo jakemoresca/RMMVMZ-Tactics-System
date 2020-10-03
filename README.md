@@ -17,3 +17,31 @@ You must also add a Selector.png image to your project's img/system folder.
 
 ## License
 Tactics System is [MIT licensed](./LICENSE).
+
+## Version Roadmap
+
+0.1 [Current] 
+  - Working Tactics-Battle based on tactical battle system plugin for RPG Maker MV version 1.2
+  - Working Tactics-Mouse addons
+  
+## Planned Features/Addons
+
+**Dynamic Move Point addon**
+  - Capability to increase/decrease Move Point permanently
+  
+**Random Enemy**
+  - Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>
+  
+**Destructible**
+  - Destructible objects like wall.
+  - Trap tiles
+  - Straight line skills
+
+**Custom Movement**
+  - Instead of relying on path finding to move, you can specify where to walk.
+  
+**Weighted Region addon**
+  - Movement types per region (Flying, Water, Amphibious, Land)
+  - Capability to have specific tiles with higher move point cost
+  
+**Fog of War**
