@@ -20,7 +20,7 @@ Tactics System is [MIT licensed](./LICENSE).
 
 ## Version Roadmap
 
-0.2 **[Current] ** 
+0.2 **[Current]** 
   - Working Tactics-Mouse addons
   - Random EnemyId setup on event tag.
 
