@@ -20,14 +20,11 @@ Tactics System is [MIT licensed](./LICENSE).
 
 ## Version Roadmap
 
-0.1 [Current] 
+0.1 **[Current] **
   - Working Tactics-Battle based on tactical battle system plugin for RPG Maker MV version 1.2
   - Working Tactics-Mouse addons
   
 ## Planned Features/Addons
-
-**Dynamic Move Point addon**
-  - Capability to increase/decrease Move Point permanently
   
 **Random Enemy**
   - Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>
