@@ -28,8 +28,8 @@ Tactics System is [MIT licensed](./LICENSE).
   
 ## Planned Features/Addons
   
-**Random Enemy**
-  - Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>
+~~**Random Enemy**
+  - Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>~~ **Implemented on version 0.2**
   
 **Destructible**
   - Destructible objects like wall.
