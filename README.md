@@ -20,9 +20,11 @@ Tactics System is [MIT licensed](./LICENSE).
 
 ## Version Roadmap
 
-0.1 **[Current] **
-  - Working Tactics-Battle based on tactical battle system plugin for RPG Maker MV version 1.2
+0.2 **[Current] ** 
   - Working Tactics-Mouse addons
+  - Random EnemyId setup on event tag.
+
+0.1 Working Tactics-Battle based on tactical battle system plugin for RPG Maker MV version 1.2
   
 ## Planned Features/Addons
   
