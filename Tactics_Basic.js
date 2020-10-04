@@ -1,5 +1,5 @@
 //=============================================================================
-// MZ Tactics Basic
+// MZ Tactics Basic 0.2
 // Based on Tactics_Basic.js v1.2 by Bilal El Moussaoui (https://twitter.com/arleq1n)
 //=============================================================================
 
@@ -250,7 +250,9 @@
  * of the party.
  *
  * You can define the enemies of the battle by creating events with the note
- * <Enemy:enemyId> or with this tag <Troop:index> to bind the event to enemy
+ * <Enemy:enemyId> for specific enemy 
+ * <Enemy:[enemyId1,enemyId2]> for random enemy
+ * or with this tag <Troop:index> to bind the event to enemy
  * in troops of the database. This will allow you to create events with the
  * conditions of the battle.
  *
@@ -644,11 +646,7 @@ Scene_Battle.prototype.tacticsCommandWindowRect = function () {
 }
 
 Scene_Battle.prototype.createSkillWindow = function () {
-    var wx = this._tacticsCommandWindow.x + this._tacticsCommandWindow.width;
-    var ww = Graphics.boxWidth - this._tacticsCommandWindow.width;
-    var wh = this._tacticsCommandWindow.fittingHeight(4);
-
-    const rect = new Rectangle(wx, this._tacticsCommandWindow.y, ww, wh);
+    const rect = this.skillWindowRect();
 
     this._skillWindow = new Window_TacticsSkill(rect);
     this._skillWindow.setHelpWindow(this._helpWindow);
@@ -721,7 +719,7 @@ Scene_Battle.prototype.commandGameEnd = function () {
 
 Scene_Battle.prototype.commandCancelMapWindow = function () {
     $gameSelector.setTransparent(false);
-    this._actorWindow.show();
+    //this._actorWindow.show();
     this._mapWindow.hide();
     this._statusWindow.hide();
     this._actorWindow.show();
@@ -1065,7 +1063,7 @@ BattleManager.createGameObjects = function () {
             this.addGameActor(event);
         } else if (event.tparam('Party') > 0) {
             this.addGameParty(event)
-        } else if (event.tparam('Enemy') > 0) {
+        } else if (event.tparam('Enemy') && event.tparam('Enemy').length > 0) {
             this.addGameEnemy(event);
         } else if (event.tparam('Troop') > 0) {
             this.addGameTroop(event);
@@ -1087,9 +1085,28 @@ BattleManager.addGameParty = function (event) {
 };
 
 BattleManager.addGameEnemy = function (event) {
-    var enemyId = Number(event.tparam('Enemy'));
-    $gameTroopTs.addEnemy(enemyId, event);
+    if(isEnemyRange(event))
+    {
+        const enemyId = getRandomEnemyInRange(event);
+        $gameTroopTs.addEnemy(enemyId, event);
+    }
+    else
+    {
+        const enemyId = Number(event.tparam('Enemy'));
+        $gameTroopTs.addEnemy(enemyId, event);
+    }
 };
+
+const isEnemyRange = (event) =>
+{
+    return event.tparam('Enemy').contains("[") && event.tparam('Enemy').contains("]");
+}
+
+const getRandomEnemyInRange = (event) =>
+{
+    const enemyRange = event.tparam('Enemy').match(/\d+/g);
+    return Number(enemyRange[Math.floor(Math.random() * enemyRange.length)]);
+}
 
 BattleManager.addGameTroop = function (event) {
     var index = Number(event.tparam('Troop'));
@@ -1455,6 +1472,7 @@ BattleManager.refreshActorWindow = function (select) {
 BattleManager.refreshEnemyWindow = function (select) {
     if (select && select.isAlive() && select.isEnemy()) {
         this._enemyWindow.open(select);
+        this._enemyWindow.show();
     } else {
         this._enemyWindow.close();
     }
