@@ -22,14 +22,14 @@ Tactics System is [MIT licensed](./LICENSE).
 
 0.2 **[Current]** 
   - Working Tactics-Mouse addons
-  - Random EnemyId setup on event tag.
+  - Random EnemyId setup on event tag. Use <<Enemy:[id1,id2,etc]>>
 
 0.1 Working Tactics-Battle based on tactical battle system plugin for RPG Maker MV version 1.2
   
 ## Planned Features/Addons
   
-~~**Random Enemy**
-  - Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>~~ **Implemented on version 0.2**
+~~**Random Enemy**~~
+  ~~- Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>~~ **Implemented on version 0.2**
   
 **Destructible**
   - Destructible objects like wall.
