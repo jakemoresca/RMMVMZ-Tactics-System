@@ -4,6 +4,7 @@
 //=============================================================================
 
 /*:
+ * @target MZ
  * @plugindesc A Tactical Battle System designed for RPG Maker MZ.
  * @author jmoresca
  *
