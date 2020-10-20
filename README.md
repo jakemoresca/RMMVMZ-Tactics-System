@@ -20,7 +20,13 @@ Tactics System is [MIT licensed](./LICENSE).
 
 ## Version Roadmap
 
-0.2 **[Current]** 
+0.3 **[Current]**
+  - Partially working destructibles (Wall like objects)
+  - To setup a destructibles use <<Destructible:xx>> where xx is the enemy id to base the stats.
+  - Destructibles are objects with hp and can be destroyed or used to an advantage (cover, environmental effects, etc)
+  - Enemies can also use it to their advantage. (No AI setup for these yet)
+
+0.2  
   - Working Tactics-Mouse addons
   - Random EnemyId setup on event tag. Use <<Enemy:[id1,id2,etc]>>
 
@@ -31,8 +37,8 @@ Tactics System is [MIT licensed](./LICENSE).
 ~~**Random Enemy**~~
   ~~- Ability to setup random enemies on Enemy Tag <<Enemy:[id1,id2,id3,etc]>>~~ **Implemented on version 0.2**
   
-**Destructible**
-  - Destructible objects like wall.
+**Destructible** Partially implemented on 0.3
+  ~~- Destructible objects like wall.~~
   - Trap tiles
   - Straight line skills
 
