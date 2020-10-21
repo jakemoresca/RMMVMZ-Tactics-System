@@ -11,7 +11,11 @@
  * @help Tactics_Destructibles.js
  *
  * This plugin is for implementing destructible on Tactical Battle System
+ * Destructibles are objects with hp and can be destroyed or used to an advantage (cover, environmental effects, etc)
  *
+ * To setup a destructibles add <Destructible:xx> to the event
+ * Where xx is the enemyId where to base the stats of the destructible
+ * 
  */
 
 (() => {
@@ -42,32 +46,6 @@
     BattleManager.allBattlerMembers = function () {
         return $gamePartyTs.members().concat($gameTroopTs.members(), $gameDestructibles.members());
     };
-
-    /*
-    TacticsSystem.Game_Action_subject = Game_Action.prototype.subject;
-    Game_Action.prototype.subject = function () {
-        TacticsSystem.Game_Action_subject.call(this);
-        if ($gamePartyTs.inBattle()) {
-            if (this._subjectActorId <= 0) {
-                return $gameTroopTs.members()[this._subjectEnemyIndex];
-            }
-        }
-        return TacticsSystem.Game_Action_subject.call(this);
-    };
-    */
-
-    /*
-    TacticsSystem.Game_Action_setSubject = Game_Action.prototype.setSubject;
-    Game_Action.prototype.setSubject = function (subject) {
-        TacticsSystem.Game_Action_setSubject.call(this, subject);
-        // For enemy restriction attack an ally...
-        if ($gamePartyTs.inBattle()) {
-            if (!subject.isActor()) {
-                this._subjectEnemyIndex = $gameTroopTs.members().indexOf(subject);
-            }
-        }
-    };
-    */
 
     BattleManager.setupTarget = function () {
         this.setupCombat(this._action);
@@ -149,14 +127,6 @@
         Game_UnitTs.prototype.onClear.call(this);
         this._destructibles = [];
     };
-
-    /*
-        Game_Action.prototype.combatOpponentsUnit = function (battler) {
-            var units = battler.opponentsUnitTS().aliveMembers();
-            var battlers = this.searchBattlers(battler, units);
-            return battlers;
-        };
-        */
 
     Game_Action.prototype.combatOpponentsUnit = function (battler) {
         var units = battler.opponentsUnitTS().aliveMembers().concat($gameDestructibles.aliveMembers());
