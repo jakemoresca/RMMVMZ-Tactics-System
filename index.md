@@ -1,13 +1,6 @@
-# Tactics System v.1.2
+# MZ Tactics System v0.3
 
-This document is a user guide to  Tactics System. Please read the instructions carefully before using this system. The Tactics System is a tactical battle system for RPG Maker MV.
-
-
-# Basics
-## Prepare Yourself !
-The **Tactics System** allows the creation of tactical-RPG with **RPG Maker MV**  (v.1.6.2)  software. **The Tactics System has been designed to be easy to use**. Just create a map with events defining the position of units and use battle processing event command to launch a fight !
-
-An example demo of how to use the system [is provided](https://github.com/belmoussaoui/Tactics-System/releases/tag/v.1.2)
+This tactics system was ported from RPG Maker MV's tactic system (https://github.com/belmoussaoui/Tactics-System) v1.3 and made to work on RPG Maker MZ v1.0.1+
 
 ## System Flow
 The fight proceeds in the same way as an episode of the series Fire Emblem : we have the **player phase** and the **enemy phase**.
