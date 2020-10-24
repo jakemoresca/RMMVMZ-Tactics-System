@@ -5,7 +5,7 @@ MZ Tactics System is a tactical battle system plugin for RPG Maker MZ. It's port
 * **Expandable by add-on:** The plugin has been developed based on what already existed in RPG Maker MZ by following the predefined rules. Thus it is easy to extend the Tactics System with add-ons. A list of add-ons bringing features to the system is already available.
 * **Event-driven:** The management of a battle is done with the event system of RPG Maker MZ. Call enemy reinforcements, write dialogs, add chests, and more.
 
-# <img alt="YAP" src="https://i.postimg.cc/vZPvTVDT/MZ-Tactics-System.gif">
+![Preview Image](https://i.postimg.cc/hPBGkJ2z/MZ-Tactics-System.gif)
 
 ## Installation
 Download TacticsSystem.js and put it in the plugin folder of your project. Activate the plugin via the plugin manager of RPG Maker MZ. Add-ons is currently not working and untested.
