@@ -318,6 +318,7 @@
 var TacticsSystem = TacticsSystem || {};
 TacticsSystem.Parameters = PluginManager.parameters('Tactics_Basic');
 TacticsSystem.clearAll = true; // in game system
+TacticsSystem.isRMMV = DataManager._globalId == 'RPGMV';
 
 /**
 * Converts a boolean string.
@@ -569,7 +570,11 @@ Scene_Battle.prototype.createDisplayObjects = function () {
     this.createSpriteset();
     this.createWindowLayer();
     this.createAllWindows();
-    this.createButtons();
+
+    if(!TacticsSystem.isRMMV)
+    {
+        this.createButtons();
+    }    
 
     BattleManager.setLogWindow(this._logWindow);
     BattleManager.setCommandWindow(this._tacticsCommandWindow);
@@ -587,13 +592,18 @@ Scene_Battle.prototype.createSpriteset = function () {
 
 
 const _Scene_Battle_createAllWindows = Scene_Battle.prototype.createAllWindows;
-const _Scene_Message_createAllWindows = Scene_Message.prototype.createAllWindows;
+const _Scene_Message_createAllWindows = TacticsSystem.isRMMV ? () => {} : Scene_Message.prototype.createAllWindows;
 Scene_Battle.prototype.createAllWindows = function () {
 
     this.createLogWindow();
     this.createStatusWindow();
     this.createUnitWindow();
-    this.createPartyCommandWindow();
+
+    if(!TacticsSystem.isRMMV) 
+    {
+        this.createPartyCommandWindow();
+    }
+
     this.createActorCommandWindow();
     this.createHelpWindow();
     this.createSkillWindow();
@@ -603,17 +613,27 @@ Scene_Battle.prototype.createAllWindows = function () {
 
     this.createMapWindow();
     this.createInfoWindow();
+
+    if(TacticsSystem.isRMMV) {
+        this.createMessageWindow();
+    }
 };
 
 Scene_Battle.prototype.createLogWindow = function () {
-    const ww = Graphics.boxWidth;
-    const wh = this.calcWindowHeight(10, false);
-    const wx = 0;
-    const wy = 0;
-
-    const rect = new Rectangle(wx, wy, ww, wh);
-
-    this._logWindow = new Window_BattleLog(rect);
+    if(TacticsSystem.isRMMV)
+    {
+        this._logWindow = new Window_BattleLog();
+    }
+    else
+    {
+        const ww = Graphics.boxWidth;
+        const wh = TacticsSystem.isRMMV ? 100 : this.calcWindowHeight(10, false);
+        const wx = 0;
+        const wy = 0;
+        const rect = new Rectangle(wx, wy, ww, wh);
+        this._logWindow = new Window_BattleLog(rect);
+    }
+    
     this.addWindow(this._logWindow);
 };
 
@@ -633,8 +653,15 @@ Scene_Battle.prototype.createEnemyWindow = function () {
 };
 
 Scene_Battle.prototype.createActorCommandWindow = function () {
-    const tacticsCommandWindowRect = this.tacticsCommandWindowRect();
-    this._tacticsCommandWindow = new Window_TacticsCommand(tacticsCommandWindowRect);
+    if(TacticsSystem.isRMMV)
+    {
+        this._tacticsCommandWindow = new Window_TacticsCommand();
+    }
+    else
+    {
+        const tacticsCommandWindowRect = this.tacticsCommandWindowRect();
+        this._tacticsCommandWindow = new Window_TacticsCommand(tacticsCommandWindowRect);
+    }
 
     this._tacticsCommandWindow.setHandler('attack', this.commandAttack.bind(this));
     this._tacticsCommandWindow.setHandler('skill', this.commandSkill.bind(this));
@@ -643,10 +670,12 @@ Scene_Battle.prototype.createActorCommandWindow = function () {
     this._tacticsCommandWindow.setHandler('event', this.commandEvent.bind(this));
     this._tacticsCommandWindow.setHandler('cancel', this.selectPreviousCommand.bind(this));
     this._tacticsCommandWindow.setHandler('wait', this.commandWait.bind(this));
+
     this.addWindow(this._tacticsCommandWindow);
     this._actorCommandWindow = this._tacticsCommandWindow;
 };
 
+//Used for RPG Maker MZ only
 Scene_Battle.prototype.tacticsCommandWindowRect = function () {
     const ww = 192;
     const wh = this.windowAreaHeight();
@@ -656,9 +685,16 @@ Scene_Battle.prototype.tacticsCommandWindowRect = function () {
 }
 
 Scene_Battle.prototype.createSkillWindow = function () {
-    const rect = this.skillWindowRect();
+    if(TacticsSystem.isRMMV)
+    {
+        this._skillWindow = new Window_TacticsSkill();
+    }
+    else
+    {
+        const rect = this.skillWindowRect();
+        this._skillWindow = new Window_TacticsSkill(rect);
+    }
 
-    this._skillWindow = new Window_TacticsSkill(rect);
     this._skillWindow.setHelpWindow(this._helpWindow);
     this._skillWindow.setHandler('ok', this.onSkillOk.bind(this));
     this._skillWindow.setHandler('cancel', this.onSkillCancel.bind(this));
@@ -679,6 +715,15 @@ Scene_Battle.prototype.createItemWindow = function () {
     this.addWindow(this._itemWindow);
 };
 
+//RMMV only
+Scene_Battle.prototype.createMessageWindow = function() {
+    this._messageWindow = new Window_Message();
+    this.addWindow(this._messageWindow);
+    this._messageWindow.subWindows().forEach(function(window) {
+        this.addWindow(window);
+    }, this);
+};
+
 Scene_Battle.prototype.createInfoWindow = function () {
     this._infoWindow = new Window_TacticsInfo();
     this._infoWindow.x = Graphics.boxWidth / 2 - this._infoWindow.width / 2;
@@ -687,8 +732,7 @@ Scene_Battle.prototype.createInfoWindow = function () {
 };
 
 Scene_Battle.prototype.createStatusWindow = function() {
-    const rect = this.statusWindowRect();
-    const statusWindow = new Window_BattleStatus(rect);
+    const statusWindow = TacticsSystem.isRMMV ? new Window_BattleStatus() : new Window_BattleStatus(this.statusWindowRect());
     this.addWindow(statusWindow);
     this._statusWindow = statusWindow;
 
@@ -742,7 +786,14 @@ Scene_Battle.prototype.start = function () {
     $gameSwitches.setValue(TacticsSystem.battleStartId, true);
     $gamePlayer.setThrough(true);
 
-    Scene_Message.prototype.start.call(this);
+    if(TacticsSystem.isRMMV) 
+    {
+        Scene_Base.prototype.start.call(this);
+    }
+    else
+    {
+        Scene_Message.prototype.start.call(this);
+    }
 
     BattleManager.startBattle();
     this.startFadeIn(this.slowFadeSpeed(), false);
@@ -785,11 +836,27 @@ Scene_Battle.prototype.update = function () {
 
     Scene_Message.prototype.update.call(this);
     */
-    const active = this.isActive();
-    $gameMap.update(active);
-    $gameSelector.update();
 
-    _Scene_Battle_update.call(this);
+    if(TacticsSystem.isRMMV)
+    {
+        var active = this.isActive();
+        $gameMap.update(active);
+        $gameTimer.update(active);
+        if (active && !this.isBusy()) {
+            this.updateBattleProcess();
+        }
+        $gameSelector.update();
+        $gameScreen.update();
+        Scene_Base.prototype.update.call(this);
+    }
+    else
+    {
+        const active = this.isActive();
+        $gameMap.update(active);
+        $gameSelector.update();
+
+        _Scene_Battle_update.call(this);
+    }
 };
 
 Scene_Battle.prototype.isMenuEnabled = function () {
@@ -862,8 +929,16 @@ Scene_Battle.prototype.updateBattleProcess = function () {
 };
 
 Scene_Battle.prototype.isBusy = function () {
-    return ((this._messageWindow && this._messageWindow.isClosing()) ||
-        Scene_Message.prototype.isBusy.call(this) || $gameSelector.isBusy());
+    if(TacticsSystem.isRMMV) 
+    {
+        return ((this._messageWindow && this._messageWindow.isClosing()) ||
+             Scene_Base.prototype.isBusy.call(this) || $gameSelector.isBusy());
+    }
+    else
+    {
+        return ((this._messageWindow && this._messageWindow.isClosing()) ||
+            Scene_Message.prototype.isBusy.call(this) || $gameSelector.isBusy());
+    }
 };
 
 Scene_Battle.prototype.isAnyInputWindowActive = function () {
@@ -1000,7 +1075,16 @@ Scene_Battle.prototype.endCommandSelection = function () {
 };
 
 Scene_Battle.prototype.stop = function () {
-    Scene_Message.prototype.stop.call(this);
+
+    if(TacticsSystem.isRMMV) 
+    {
+        Scene_Base.prototype.stop.call(this);
+    }
+    else
+    {
+        Scene_Message.prototype.stop.call(this);
+    }
+
     if (this.needsSlowFadeOut()) {
         this.startFadeOut(this.slowFadeSpeed(), false);
     } else {
@@ -1017,7 +1101,14 @@ Scene_Battle.prototype.needsSlowFadeOut = function () {
 };
 
 Scene_Battle.prototype.terminate = function () {
-    Scene_Message.prototype.terminate.call(this);
+    if(TacticsSystem.isRMMV) 
+    {
+        Scene_Base.prototype.terminate.call(this);
+    }
+    else
+    {
+        Scene_Message.prototype.terminate.call(this);
+    }
 };
 
 
@@ -1482,7 +1573,11 @@ BattleManager.refreshActorWindow = function (select) {
 BattleManager.refreshEnemyWindow = function (select) {
     if (select && select.isAlive() && select.isEnemy()) {
         this._enemyWindow.open(select);
-        this._enemyWindow.show();
+
+        if(!TacticsSystem.isRMMV) 
+        {
+            this._enemyWindow.show();
+        }
     } else {
         this._enemyWindow.close();
     }
@@ -3993,11 +4088,22 @@ function Sprite_Selector() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Selector.prototype = Object.create(Sprite.prototype);
+var spriteBasePrototype;
+if(TacticsSystem.isRMMV)
+{
+    Sprite_Selector.prototype = Object.create(Sprite_Base.prototype);
+    spriteBasePrototype = Sprite_Base.prototype;
+}
+else
+{
+    Sprite_Selector.prototype = Object.create(Sprite.prototype);
+    spriteBasePrototype = Sprite.prototype;
+}
+
 Sprite_Selector.prototype.constructor = Sprite_Selector;
 
 Sprite_Selector.prototype.initialize = function () {
-    Sprite.prototype.initialize.call(this);
+    spriteBasePrototype.initialize.call(this);
     this.loadBitmap();
 };
 
@@ -4006,14 +4112,14 @@ Sprite_Selector.prototype.loadBitmap = function () {
 };
 
 Sprite_Selector.prototype.update = function () {
-    Sprite.prototype.update.call(this);
+    spriteBasePrototype.update.call(this);
     this.updateVisibility();
     this.x = $gameSelector.screenX();
     this.y = $gameSelector.screenY();
 };
 
 Sprite_Selector.prototype.updateVisibility = function () {
-    Sprite.prototype.updateVisibility.call(this);
+    spriteBasePrototype.updateVisibility.call(this);
     this.visible = !$gameSelector.isTransparent();
 };
 
@@ -4026,11 +4132,11 @@ function Sprite_Grid() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Grid.prototype = Object.create(Sprite.prototype);
+Sprite_Grid.prototype = Object.create(spriteBasePrototype);
 Sprite_Grid.prototype.constructor = Sprite_Grid;
 
 Sprite_Grid.prototype.initialize = function () {
-    Sprite.prototype.initialize.call(this);
+    spriteBasePrototype.initialize.call(this);
     this.setFrame(0, 0, Graphics.width, Graphics.height);
     this.createBitmap();
     this.z = 1;
@@ -4050,7 +4156,7 @@ Sprite_Grid.prototype.createBitmap = function () {
 };
 
 Sprite_Grid.prototype.update = function () {
-    Sprite.prototype.update.call(this);
+    spriteBasePrototype.update.call(this);
     var screen = $gameScreen;
     var scale = screen.zoomScale();
     this.scale.x = scale;
@@ -4526,11 +4632,11 @@ function Sprite_HpGauge() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_HpGauge.prototype = Object.create(Sprite.prototype);
+Sprite_HpGauge.prototype = Object.create(spriteBasePrototype);
 Sprite_HpGauge.prototype.constructor = Sprite_HpGauge;
 
 Sprite_HpGauge.prototype.initialize = function (battler) {
-    Sprite.prototype.initialize.call(this);
+    spriteBasePrototype.initialize.call(this);
     this.bitmap = new Bitmap(40, 4);
     this.windowskin = ImageManager.loadSystem('Window');
     this.anchor.x = 0.5;
@@ -4586,11 +4692,11 @@ function Sprite_Start() {
     this.initialize.apply(this, arguments);
 };
 
-Sprite_Start.prototype = Object.create(Sprite.prototype);
+Sprite_Start.prototype = Object.create(spriteBasePrototype);
 Sprite_Start.prototype.constructor = Sprite_Start;
 
 Sprite_Start.prototype.initialize = function () {
-    Sprite.prototype.initialize.call(this);
+    spriteBasePrototype.initialize.call(this);
     this.bitmap = new Bitmap(Graphics.width, Graphics.height);
     this._delay = 0;
     this._maxDuration = TacticsSystem.durationStartSprite;
@@ -4599,7 +4705,7 @@ Sprite_Start.prototype.initialize = function () {
 };
 
 Sprite_Start.prototype.update = function (battler) {
-    Sprite.prototype.update.call(this);
+    spriteBasePrototype.update.call(this);
     this.updateMain();
     this.updatePosition();
     this.updateOpacity();
@@ -4807,7 +4913,21 @@ Window_TacticsStatus.prototype.drawActorSimpleStatus = function (actor, x, y, wi
     this.drawActorIcons(actor, x, y + lineHeight * 2);
     this.drawActorClass(actor, x2, y);
 
-    this.placeBasicGauges(actor, x2, y + lineHeight);
+    if(TacticsSystem.isRMMV)
+    {
+        if ($dataSystem.optDisplayTp) {
+            this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
+            this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
+            this.drawActorTp(actor, x2, y + lineHeight * 3, width2);
+        } else {
+            this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
+            this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
+        }
+    }
+    else
+    {
+        this.placeBasicGauges(actor, x2, y + lineHeight);
+    }
 };
 
 Window_TacticsStatus.prototype.drawEnemySimpleStatus = function (enemy, x, y) {
@@ -5057,8 +5177,8 @@ Window_TacticsMap.prototype.selectLast = function () {
 // The superclass of all windows within the game.
 
 Window_Base.prototype.drawEnemyImage = function (battler, x, y) {
-    width = ImageManager.faceWidth;
-    height = ImageManager.faceHeight;
+    width = TacticsSystem.isRMMV ? Window_Base._faceWidth : ImageManager.faceWidth;
+    height = TacticsSystem.isRMMV ? Window_Base._faceHeight : ImageManager.faceHeight;
     var bitmap = ImageManager.loadEnemy(battler.battlerName());
     var pw = bitmap.width;
     var ph = bitmap.height;
