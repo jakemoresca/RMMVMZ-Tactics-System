@@ -1,13 +1,16 @@
 //=============================================================================
-//  MZ Tactics Mouse
-//  Based on Tactics_Mouse.js by Bilal El Moussaoui (https://twitter.com/arleq1n)
+// Tactics_Mouse.js
 //=============================================================================
 
 /*:
  * @plugindesc Add features for control with the mouse.
  * Requires: TacticsSystem.js.
- * @author jmoresca
+ * @author Bilal El Moussaoui (https://twitter.com/arleq1n)
  *
+ * @help
+ *
+ * For more information, please consult :
+ *   - https://forums.rpgmakerweb.com/index.php?threads/tactics-system.97023/
  */
 
 var MouseSystem = MouseSystem || {};
@@ -90,6 +93,26 @@ Input.update = function() {
         }
     }
     Input_update.call(this);
+};
+
+/**
+ * @static
+ * @method _updateGamepadState
+ * @param {Gamepad} gamepad
+ * @param {Number} index
+ * @private
+ */
+var Input_updateGamepadState = Input._updateGamepadState
+Input._updateGamepadState = function(gamepad) {
+    Input_updateGamepadState.call(this, gamepad);
+    for (var j = 0; j < newState.length; j++) {
+        if (newState[j] !== lastState[j]) {
+            var buttonName = this.gamepadMapper[j];
+            if (buttonName) {
+                TouchInput.setActive(false);
+            }
+        }
+    }
 };
 
 /**
@@ -250,15 +273,20 @@ Game_Map.prototype.roundYWithDirection8 = function(y, d) {
 
 Window_Selectable.prototype.processTouch = function() {
     if (this.isOpenAndActive()) {
-        if (this.isHoverEnabled() && TouchInput.isHovered()) {
-            this.onTouchSelect(false);
-        } else if (TouchInput.isTriggered() && this.isTouchedInsideFrame()) {
-            this.onTouchSelect(true);
-        }
-        if (TouchInput.isClicked()) {
-            this.onTouchOk();
+        if (TouchInput.isTriggered() && this.isTouchedInsideFrame()) {
+            this._touching = true;
+            this.onTouch(true);
         } else if (TouchInput.isCancelled()) {
-            this.onTouchCancel();
+            if (this.isCancelEnabled()) {
+                this.processCancel();
+            }
         }
+        if (this.isTouchedInsideFrame()) {
+            if (TouchInput.isActive()) {
+                this.onTouch(false);
+            }
+        }
+    } else {
+        this._touching = false;
     }
 };

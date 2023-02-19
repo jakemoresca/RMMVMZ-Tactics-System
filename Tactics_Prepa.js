@@ -19,33 +19,12 @@
  * @param Preparation Phase Id
  * @desc The switch id to set if it's the preparation phase.
  * @default 4
- * @type variable
- *
- * @param Open Prepa Menu
- * @desc Open the preparation menu automatically first in the battle scene.
- * @default true
- * @type boolean
  *
  * @help
+ *
  * For more information, please consult :
  *   - https://forums.rpgmakerweb.com/index.php?threads/tactics-system-1-0.117600/
  */
-
- /**
- * Converts a boolean string.
- *
- * @method String.prototype.toBoolean
- * @return {Boolean} A boolean of string
- */
-String.prototype.toBoolean = function(){
-    var s = String(this);
-    switch (s) {
-    case 'false':
-        return false;
-    default:
-        return true;
-    }
-};
 
 var BattlePreparation = BattlePreparation || {};
 BattlePreparation.Parameters = PluginManager.parameters('Tactics_Prepa');
@@ -53,48 +32,6 @@ BattlePreparation.Parameters = PluginManager.parameters('Tactics_Prepa');
 BattlePreparation.startScopeColor =    String(BattlePreparation.Parameters['Start Scope Color']);
 BattlePreparation.startBattleTerm =    String(BattlePreparation.Parameters['Start Battle Term']);
 BattlePreparation.preparationPhaseId = Number(BattlePreparation.Parameters['Preparation Phase Id']);
-BattlePreparation.openPrepaMenu =      String(BattlePreparation.Parameters['Open Prepa Menu']).toBoolean();
-
-//-----------------------------------------------------------------------------
-// Game_Interpreter
-//
-// The interpreter for running event commands.
-
-BattlePreparation.Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    BattlePreparation.Game_Interpreter_pluginCommand.call(this, command, args);
-    switch(command) {
-    case 'BattlePreparation.MenuEnable':
-        this.prepaMenuEnable();
-        break;
-    case 'BattlePreparation.MenuDisable':
-        this.prepaMenuDisable();
-        break;
-    case 'BattlePreparation.MenuOpen':
-        this.prepaMenuOpen();
-        break;
-     case 'BattlePreparation.MenuClose':
-        this.prepaMenuClose();
-        break;
-    }
-};
-
-
-Game_Interpreter.prototype.prepaMenuEnable = function() {
-    $gameSystem.enablePrepa();
-};
-
-Game_Interpreter.prototype.prepaMenuDisable = function() {
-    $gameSystem.disablePrepa();
-};
-
-Game_Interpreter.prototype.prepaMenuOpen = function() {
-    
-};
-
-Game_Interpreter.prototype.prepaMenuClose = function() {
-    
-};
 
 //-----------------------------------------------------------------------------
 // Scene_Battle
@@ -104,7 +41,6 @@ Game_Interpreter.prototype.prepaMenuClose = function() {
 BattlePreparation.Scene_Battle_start = Scene_Battle.prototype.start;
 Scene_Battle.prototype.start = function() {
     BattlePreparation.Scene_Battle_start.call(this);
-    TacticsSystem.Game_Screen_onBattleStart.call($gameScreen);
     if (this._registerWindow2) {
         this._registerWindow2.refresh();
     }
@@ -120,10 +56,8 @@ Scene_Battle.prototype.createAllWindows = function() {
         this._registerWindow2 = this._statusWindow;
         this._mapWindow = this._prepaWindow;
         this._statusWindow = this._formationWindow;
-        if (BattlePreparation.openPrepaMenu) {
-            this.callMenu();
-            this.menuCalling = false;
-        }
+        this.callMenu();
+        this.menuCalling = false;
     } else {
         this._prepaWindow.close();
         this._formationWindow.close();
@@ -158,7 +92,6 @@ Scene_Battle.prototype.createFormationWindow = function() {
     var wx = this._prepaWindow.x + this._prepaWindow.width;
     this._formationWindow = new Window_TacticsFormation(wx, 0);
     this._formationWindow.reserveFaceImages();
-    this._formationWindow.hide();
     this.addWindow(this._formationWindow);
 };
 
@@ -208,6 +141,12 @@ Scene_Battle.prototype.onFormationCancel = function() {
         this._actorWindow.close();
     }
 };
+
+BattlePreparation.Scene_Battle_isAnyInputWindowActive = Scene_Battle.prototype.isAnyInputWindowActive;
+Scene_Battle.prototype.isAnyInputWindowActive = function() {
+    return (BattlePreparation.Scene_Battle_isAnyInputWindowActive.call(this) || this._formationWindow.active);
+};
+
 
 BattlePreparation.Scene_Battle_refreshStatus = Scene_Battle.prototype.refreshStatus;
 Scene_Battle.prototype.refreshStatus = function() {
@@ -376,29 +315,6 @@ BattleManager.updateEvent = function() {
         $gameSwitches.update();
         $gameVariables.update();
     }
-};
-
-//-----------------------------------------------------------------------------
-// Game_System
-//
-// The game object class for the system data.
-
-BattlePreparation.Game_System_initialize = Game_System.prototype.initialize;
-Game_System.prototype.initialize = function() {
-    this._prepaEnabled = true;
-    BattlePreparation.Game_System_initialize.call(this);
-};
-
-Game_System.prototype.isPrepaEnabled = function() {
-    return this._prepaEnabled;
-};
-
-Game_System.prototype.disablePrepa = function() {
-    this._prepaEnabled = false;
-};
-
-Game_System.prototype.enablePrepa = function() {
-    this._prepaEnabled = true;
 };
 
 //-----------------------------------------------------------------------------

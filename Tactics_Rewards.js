@@ -4,7 +4,7 @@
 
 /*:
  * @plugindesc Review of the rewards for tactics battle.
- * Requires: Tactics_Basics.js and above of Tactics_Combat.
+ * Requires: TacticsSystem.js
  * @author Bilal El Moussaoui (https://twitter.com/arleq1n)
  *
  * @param Attack Exp Formula
@@ -100,18 +100,6 @@ BattleManager.invokeRewards = function(target) {
     }
 };
 
-ExpGain.BattleManager_invokeCounterAttack = BattleManager.invokeCounterAttack;
-BattleManager.invokeCounterAttack = function(subject, target) {
-    ExpGain.BattleManager_invokeCounterAttack.call(this, subject, target);
-    if (target.isActor()) {
-        if (subject.isEnemy() && subject.isDead()) {
-            this.gainRewardsEnemy(subject);
-        } else {
-            this.gainRewardsAction(subject)
-        }
-    }
-};
-
 BattleManager.gainRewardsEnemy = function(enemy) {
     this._rewards.gold += enemy.gold();
     this._rewards.exp += enemy.exp();
@@ -124,23 +112,15 @@ BattleManager.gainRewardsAction = function(target) {
 
 ExpGain.BattleManager_nextAction = BattleManager.nextAction;
 BattleManager.nextAction = function() {
-    this.nextRewardsAction();
-    ExpGain.BattleManager_nextAction.call(this);
-};
-
-BattleManager.nextRewardsAction = function() {
-    if (this._rewards.exp > 0) {
+    if (this._rewards.exp > 0 && this._subject.isActor()) {
         this._infoWindow.close();
-        var actor = this._subject;
-        if (!this._subject.isActor()) {
-            actor = this._targets[this._targets.length - 1];
-        }
-        this._expWindow.setup(actor);
-        actor.gainExp(this._rewards.exp, false);
+        this._expWindow.setup(this._subject);
+        this._subject.gainExp(this._rewards.exp, false);
         this.displayRewards();
         this.gainRewards();
         this.makeRewards();
     }
+    ExpGain.BattleManager_nextAction.call(this);
 };
 
 BattleManager.makeRewards = function() {
@@ -156,20 +136,6 @@ BattleManager.gainRewards = function() {
 };
 
 BattleManager.displayRewards = function() {
-};
-
-ExpGain.BattleManager_isBusy  = BattleManager.isBusy;
-BattleManager.isBusy = function() {
-    return (ExpGain.BattleManager_isBusy.call(this) || this._expWindow.isBusy());
-};
-
-ExpGain.BattleManager_updateEvent = BattleManager.updateEvent;
-BattleManager.updateEvent = function() {
-    if (this._battlePhase !== 'action') {
-        return ExpGain.BattleManager_updateEvent.call(this);
-    } else {
-        return false;
-    }
 };
 
 //-----------------------------------------------------------------------------
@@ -290,6 +256,7 @@ Window_Exp.prototype.isTriggered = function() {
 
 Window_Exp.prototype.updateGaugeExp = function() {
     this._showCount++;
+    this._soundCount--;
     if (this._showCount > 30) {
         SoundManager.playOk();
         var currentExp = this._tempActor.currentExp();
@@ -401,8 +368,4 @@ Window_Exp.prototype.drawGauge = function(x, y, width, rate, color1, color2) {
     var gaugeY = y + this.lineHeight() - 16;
     this.contents.fillRect(x, gaugeY, width, 10, this.gaugeBackColor());
     this.contents.gradientFillRect(x, gaugeY, fillW, 10, color1, color2);
-};
-
-Window_Exp.prototype.isBusy = function() {
-    return this._actor || this.pause;
 };
