@@ -1,6 +1,6 @@
 //=============================================================================
 // MZ Tactics Basic 0.2
-// Based on Tactics_Basic.js v1.2 by Bilal El Moussaoui (https://twitter.com/arleq1n)
+// Based on Tactics_Basic.js v1.2.1 by Bilal El Moussaoui (https://twitter.com/arleq1n)
 //=============================================================================
 
 /*:
@@ -135,6 +135,14 @@
  * @param Set Transparent Unit
  * @parent Display Manager
  * @desc Set Transparent to true at the end of the battle.
+ * @default true
+ * @on Yes
+ * @off No
+ * @type boolean
+ *
+ * @param Show Face Unit
+ * @parent Display Manager
+ * @desc Show the face of unit otherwise display the charset.
  * @default true
  * @on Yes
  * @off No
@@ -344,6 +352,7 @@ TacticsSystem.durationStartSprite = Number(TacticsSystem.Parameters['Duration St
 TacticsSystem.showInformationWindow = String(TacticsSystem.Parameters['Show Information Window']).toBoolean();
 TacticsSystem.fadeOutEnd = String(TacticsSystem.Parameters['Fade Out End']).toBoolean();
 TacticsSystem.setTransparentUnit = String(TacticsSystem.Parameters['Set Transparent Unit']).toBoolean();
+TacticsSystem.showFaceUnit = String(TacticsSystem.Parameters['Show Face Unit']).toBoolean();
 TacticsSystem.battleStartTerm = String(TacticsSystem.Parameters['Battle Start Term']);
 TacticsSystem.endTurnTerm = String(TacticsSystem.Parameters['End Turn Term']);
 TacticsSystem.damageTerm = String(TacticsSystem.Parameters['Damage Term']);
@@ -2237,10 +2246,12 @@ Game_Action.prototype.isAttackRange = function (subject) {
 
 Game_Action.prototype.updateRange = function (item, x, y) {
     var data = this.extractRangeData(item);
+    // range: 10 -> range: 0 10
     if (data[1] === undefined) {
         data[1] = data[0];
         data[0] = 0;
     }
+    // range: 
     if (data[2] === undefined) {
         data[2] = 'diamond';
     }
@@ -2514,6 +2525,9 @@ Game_Battler.prototype.tparam = function (paramString) {
     var param = null;
     for (var i = 0; i < this.currentData().length; i++) {
         param = this.currentData()[i].meta[paramString]
+        if (param) {
+            break;
+        }
     }
     if (param) {
         param.replace(/\s/g, '');
@@ -3047,8 +3061,8 @@ Game_Party.prototype.memberId = function (partyId) {
 
 Game_Troop.prototype.setupTactics = function (enemies) {
     this._enemies = [];
-    enemies.forEach(function (member) {
-        if (!member.isBattleMember()) {
+    enemies.forEach(function(member) {
+        if (member && !member.isBattleMember()) {
             this._enemies.push(member);
         }
     }, this)
@@ -4742,18 +4756,52 @@ Window_TacticsStatus.prototype.refresh = function () {
 
 Window_TacticsStatus.prototype.drawBattlerStatus = function () {
     if (this._battler.isActor()) {
-        this.drawActorFace(this._battler, 0, 0, ImageManager.faceWidth, ImageManager.faceHeight);
+        this.drawActorFrame();
         this.drawActorSimpleStatus(this._battler, 0, 0, 376);
     } else {
-        this.drawEnemyImage(this._battler, 0, 0);
+        this.drawEnemyFrame();
         this.drawEnemySimpleStatus(this._battler, 0, 0, 376);
     }
 };
 
-Window_TacticsStatus.prototype.drawActorSimpleStatus = function (actor, x, y) {
+Window_TacticsStatus.prototype.drawActorFrame = function() {
+     if (TacticsSystem.showFaceUnit) {
+        this.drawActorFace(this._battler, 0, 0, Window_Base._faceWidth, Window_Base._faceHeight);
+    } else {
+        this.drawActorCharacter(this._battler, 48+24, 48*2);
+    }
+};
+
+Window_TacticsStatus.prototype.drawEnemyFrame = function() {
+    if (TacticsSystem.showFaceUnit) {
+        this.drawEnemyImage(this._battler, 0, 0);
+    } else {
+        var event = this._battler.event();
+        this.drawCharacter(event.characterName(), event.characterIndex(), 48+24, 48*2);
+    }
+};
+
+Window_TacticsStatus.prototype.drawActorFrame = function() {
+     if (TacticsSystem.showFaceUnit) {
+        this.drawActorFace(this._battler, 0, 0, Window_Base._faceWidth, Window_Base._faceHeight);
+    } else {
+        this.drawActorCharacter(this._battler, 48+24, 48*2);
+    }
+};
+
+Window_TacticsStatus.prototype.drawEnemyFrame = function() {
+    if (TacticsSystem.showFaceUnit) {
+        this.drawEnemyImage(this._battler, 0, 0);
+    } else {
+        var event = this._battler.event();
+        this.drawCharacter(event.characterName(), event.characterIndex(), 48+24, 48*2);
+    }
+};
+
+Window_TacticsStatus.prototype.drawActorSimpleStatus = function (actor, x, y, width) {
     var lineHeight = this.lineHeight();
     var x2 = x + 150;
-
+    var width2 = Math.min(200, width - 180 - this.textPadding());
     this.drawActorName(actor, x, y);
     this.drawActorLevel(actor, x, y + lineHeight * 1);
     this.drawActorIcons(actor, x, y + lineHeight * 2);
